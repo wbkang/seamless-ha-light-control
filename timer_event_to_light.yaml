@@ -1,0 +1,56 @@
+blueprint:
+  name: 'Light Control: Timer Event to Light'
+  description: Bind timer to light
+  domain: automation
+  input:
+    light_timer:
+      name: Light timer
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    target_light:
+      name: Lights
+      description: The lights to keep in sync.
+      selector:
+        entity:
+          filter:
+          - domain: light
+mode: queued
+trigger:
+  - platform: state
+    entity_id: !input light_timer
+  - platform: time_pattern
+    minutes: /5
+condition: []
+action: 
+- if: # not idle (aka running)
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: !input light_timer
+      state: 'idle'
+  then:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: !input target_light
+        state: 'on'
+    then:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: !input target_light
+  else:
+  - if:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: !input target_light
+        state: 'off'
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: !input target_light

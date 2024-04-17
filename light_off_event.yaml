@@ -1,0 +1,44 @@
+blueprint:
+  name: 'Light Control: Light off events'
+  description: Integrate Light off events
+  domain: automation
+  input:
+    light_timer:
+      name: Light timer
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    suppression_timer:
+      name: Suppression Timer
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    target_light:
+      name: Lights
+      description: The lights to keep in sync.
+      selector:
+        entity:
+          filter:
+          - domain: light
+mode: queued
+trigger:
+- platform: state
+  entity_id: !input target_light
+  to: 'off'
+condition: []
+action: 
+- if:
+  - condition: state
+    entity_id: !input light_timer
+    state: 'active'
+  then:
+  - service: timer.start
+    data: {}
+    target:
+      entity_id: !input suppression_timer
+  - service: timer.cancel
+    data: {}
+    target:
+      entity_id: !input light_timer
