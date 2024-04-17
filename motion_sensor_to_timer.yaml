@@ -1,0 +1,128 @@
+blueprint:
+  name: 'Light Control: Motion Sensor to Timer'
+  description: Integrate motion sensor to light timer
+  domain: automation
+  input:
+    light_timer_1:
+      name: Light timer 1
+      default: ''
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    light_timer_2:
+      name: Light timer 2
+      default: ''
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    light_timer_3:
+      name: Light timer 3
+      default: ''
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    suppression_timer:
+      name: Suppression Timer
+      selector:
+        entity:
+          filter:
+          - domain: timer
+    motion_sensor_1:
+      name: Motion Sensor 1
+      default: binary_sensor.always_off
+      selector:
+        entity:
+          filter:
+          - domain: binary_sensor
+    motion_sensor_2:
+      name: Motion Sensor 2
+      default: binary_sensor.always_off
+      selector:
+        entity:
+          filter:
+          - domain: binary_sensor
+    motion_sensor_3:
+      name: Motion Sensor 3
+      default: binary_sensor.always_off
+      selector:
+        entity:
+          filter:
+          - domain: binary_sensor
+    active_time_after:
+      name: Only active after time
+      default: '04:45:00'
+      selector:
+        time:
+    active_time_before:
+      name: Only active after time
+      default: '23:00:00'
+      selector:
+        time:
+mode: queued
+variables:
+  # workaround so I can use inputs in templates
+  motion_sensor_1: !input motion_sensor_1
+  motion_sensor_2: !input motion_sensor_2
+  motion_sensor_3: !input motion_sensor_3
+  light_timer_1: !input light_timer_1
+  light_timer_2: !input light_timer_2
+  light_timer_3: !input light_timer_3
+trigger:
+- platform: state
+  entity_id: !input motion_sensor_1
+  to: 'on'
+- platform: state
+  entity_id: !input motion_sensor_2
+  to: 'on'
+- platform: state
+  entity_id: !input motion_sensor_3
+  to: 'on'
+- platform: time_pattern
+  minutes: /5
+condition: []
+action: 
+- if:
+  - condition: and
+    conditions:
+    - condition: time
+      after: !input active_time_after
+      before: !input active_time_before
+    - condition: state
+      entity_id: !input suppression_timer
+      state: idle
+    - condition: or
+      conditions:
+      - condition: template
+        value_template: "{{ motion_sensor_1 != '' and is_state(motion_sensor_1, 'on') }}"
+      - condition: template
+        value_template: "{{ motion_sensor_2 != '' and is_state(motion_sensor_2, 'on') }}"
+      - condition: template
+        value_template: "{{ motion_sensor_3 != '' and is_state(motion_sensor_3, 'on') }}"
+  then:
+  - if:
+    - condition: template
+      value_template: "{{ light_timer_1 != '' }}"
+    then:
+    - service: timer.start
+      data: {}
+      target:
+        entity_id: "{{ light_timer_1 }}"
+  - if:
+    - condition: template
+      value_template: "{{ light_timer_2 != '' }}"
+    then:
+    - service: timer.start
+      data: {}
+      target:
+        entity_id: "{{ light_timer_2 }}"
+  - if:
+    - condition: template
+      value_template: "{{ light_timer_3 != '' }}"
+    then:
+    - service: timer.start
+      data: {}
+      target:
+        entity_id: "{{ light_timer_3 }}"
