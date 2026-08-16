@@ -41,4 +41,4 @@ action:
 - service: timer.start
   data: {}
   target:
-    entity_id: !input target_light
+    entity_id: !input light_timer

@@ -51,6 +51,18 @@ blueprint:
         entity:
           filter:
           - domain: binary_sensor
+    motion_trigger_1:
+      name: Motion Trigger 1
+      default: []
+      selector:
+        trigger:
+    motion_trigger_1_condition:
+      name: Motion Trigger 1 Condition
+      default:
+        - condition: template
+          value_template: "{{ false }}"
+      selector:
+        condition:
     active_time_after:
       name: Only active after time
       default: '04:45:00'
@@ -70,7 +82,8 @@ variables:
   light_timer_1: !input light_timer_1
   light_timer_2: !input light_timer_2
   light_timer_3: !input light_timer_3
-trigger:
+trigger: 
+- triggers: !input motion_trigger_1
 - platform: state
   entity_id: !input motion_sensor_1
   to: 'on'
@@ -95,6 +108,8 @@ action:
       state: idle
     - condition: or
       conditions:
+      - condition: and
+        conditions: !input motion_trigger_1_condition
       - condition: template
         value_template: "{{ motion_sensor_1 != '' and is_state(motion_sensor_1, 'on') }}"
       - condition: template
