@@ -30,9 +30,13 @@ trigger:
 condition: []
 action: 
 - if:
-  - condition: state
-    entity_id: !input light_timer
-    state: 'active'
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: !input light_timer
+      state: 'active'
+    - condition: template
+      value_template: "{{ trigger.to_state.context.parent_id is none }}"
   then:
   - service: timer.start
     data: {}
