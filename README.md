@@ -7,6 +7,7 @@ It has the following features:
 1. When motion is detected, turn on the light for a specific time. Extend the time whenever motion is detected.
 1. When the light is turned on, turn the light off after a timeout.
 1. When the light is turned off manually, do not trigger the motion detection light for a while (customizable).
+1. Optionally, motion can be restricted to *extending* the light only - it will not turn the light on from off, only a human (via a switch, the UI, voice, etc.) can do that. Once it's on, motion keeps it on longer as usual. See `motion_does_not_turn_on_lights` below.
 
 ## Instructions
 
@@ -31,7 +32,7 @@ Create 4 automations each of the blueprint element.
 Blueprints
 - light_off_event: Used to bind a manual light off event to reset the main timer, and start the suppression timer.
 - light_on_event: Used to bind a manual light on event to start the main timer, and reset the suppression timer.
-- motion_sensor_to_timer: Binds the motion sensor event into the main timer, which will eventually trigger the light on.
+- motion_sensor_to_timer: Binds the motion sensor event into the main timer, which will eventually trigger the light on. By default motion can both start the timer from idle (initial trigger) and extend it while running. Set `motion_does_not_turn_on_lights: true` to restrict motion to extending an already-running timer only - it will not start the timer from idle, so motion alone can never turn the light on; only a genuine manual on (via light_on_event) can.
 - timer_event_to_light: Binds the main light timer state to light.
 
 
@@ -102,3 +103,25 @@ timer:
       target_light: light.dining_room_light
 
 ```
+
+### Motion-does-not-initiate example
+
+Same group as above, but motion only extends - the light must be turned on by a human first:
+
+```
+- id: '1679617833881'
+  alias: 'Dining room: Motion  Sensor to Light Timer (4-12)'
+  use_blueprint:
+    path: seamless-light-control/motion_sensor_to_timer.yaml
+    input:
+      motion_sensor_1: binary_sensor.dining_room_motion
+      motion_sensor_2: binary_sensor.always_off
+      active_time_before: '23:59:59'
+      active_time_after: 04:00:00
+      light_timer_1: timer.dining_room_timer
+      light_timer_2: timer.living_room_timer
+      suppression_timer: timer.dining_room_suppression_timer
+      motion_does_not_turn_on_lights: true
+```
+
+The other three automations (light_on_event, timer_event_to_light, light_off_event) are unchanged.

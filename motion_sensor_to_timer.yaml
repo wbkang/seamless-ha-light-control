@@ -63,6 +63,16 @@ blueprint:
           value_template: "{{ false }}"
       selector:
         condition:
+    motion_does_not_turn_on_lights:
+      name: Motion does not turn on lights
+      description: >-
+        When enabled, motion will not start the timer from idle - it only
+        extends/restarts it if already running. Use this when the light
+        should only be turned on by a human (via light_on_event), with
+        motion just keeping it on longer once it's already on.
+      default: false
+      selector:
+        boolean:
     active_time_after:
       name: Only active after time
       default: '04:45:00'
@@ -82,6 +92,7 @@ variables:
   light_timer_1: !input light_timer_1
   light_timer_2: !input light_timer_2
   light_timer_3: !input light_timer_3
+  motion_does_not_turn_on_lights: !input motion_does_not_turn_on_lights
 trigger: 
 - triggers: !input motion_trigger_1
 - platform: state
@@ -119,7 +130,8 @@ action:
   then:
   - if:
     - condition: template
-      value_template: "{{ light_timer_1 != '' }}"
+      value_template: >-
+        {{ light_timer_1 != '' and (not motion_does_not_turn_on_lights or not is_state(light_timer_1, 'idle')) }}
     then:
     - service: timer.start
       data: {}
@@ -127,7 +139,8 @@ action:
         entity_id: "{{ light_timer_1 }}"
   - if:
     - condition: template
-      value_template: "{{ light_timer_2 != '' }}"
+      value_template: >-
+        {{ light_timer_2 != '' and (not motion_does_not_turn_on_lights or not is_state(light_timer_2, 'idle')) }}
     then:
     - service: timer.start
       data: {}
@@ -135,7 +148,8 @@ action:
         entity_id: "{{ light_timer_2 }}"
   - if:
     - condition: template
-      value_template: "{{ light_timer_3 != '' }}"
+      value_template: >-
+        {{ light_timer_3 != '' and (not motion_does_not_turn_on_lights or not is_state(light_timer_3, 'idle')) }}
     then:
     - service: timer.start
       data: {}

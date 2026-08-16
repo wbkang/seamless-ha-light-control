@@ -26,6 +26,7 @@ mode: queued
 trigger:
 - platform: state
   entity_id: !input target_light
+  from: 'on'
   to: 'off'
 condition: []
 action: 
